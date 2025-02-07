@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app-pod
+spec:
+  # L'init container viene eseguito per primo.
+  initContainers:
+  - name: init-db-check
+    image: busybox
+    command:
+      - sh
+      - -c
+      - |
+        echo "Controllo la disponibilità del database..."
+        # Simulazione di un controllo (ad esempio, attendiamo 5 secondi)
+        sleep 5
+        echo "Database disponibile!"
+  # Il container principale verrà avviato solo se l'init container termina con successo.
+  containers:
+  - name: my-app-container
+    image: my-app-image:latest
+    ports:
+    - containerPort: 8080
+
+## initContainers:
+
+# - init-db-check: È un container temporaneo che viene eseguito prima del container principale. In questo esempio, utilizza l'immagine busybox per eseguire uno script shell che simula un controllo sulla disponibilità di un database (in questo caso tramite un semplice sleep 5).
+# Se questo init container termina correttamente (cioè con exit code 0), Kubernetes procederà all'avvio del container principale.
+# - containers:
+
+# my-app-container: È il container principale che verrà avviato solo dopo che tutti gli init container hanno completato con successo la loro esecuzione. Questo container espone la porta 8080 ed esegue l'immagine my-app-image:latest.
