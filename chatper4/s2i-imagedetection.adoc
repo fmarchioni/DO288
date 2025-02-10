@@ -1,11 +1,17 @@
+```mermaid
 flowchart TD
-    A[Start] --> B{L'URL punta a un repository Git?}
+    A[Start] --> B{L’URL punta a un repository Git?}
+    
     B -- Sì --> C[Recupera la lista dei file dal repository]
-    C --> D[Cerca un file "Dockerfile"]
+    C --> D[Cerca un file Dockerfile]
+    
     D -- Trovato --> E[Utilizza la strategia Docker]
-    D -- Non trovato --> F[Utilizza la strategia Source (S2I)]
-    F --> G[Cerca image stream con l'annotazione "supports" corrispondente al nome del builder]
-    G -- Match trovato --> H[Seleziona builder image S2I (primo match)]
+    D -- Non trovato --> F[Utilizza la strategia SourceToImage]
+    
+    F --> G[Cerca image stream con l’annotazione supports corrispondente al nome del builder]
+    G -- Match trovato --> H[Seleziona builder image S2I - primo match- ]
     G -- Nessun match --> I[Cerca image stream il cui nome corrisponde al builder]
-    I -- Match trovato --> J[Seleziona builder image S2I (primo match)]
+    I -- Match trovato --> J[Seleziona builder image S2I -primo match- ]
+    
     B -- No --> K[Non è un repository di codice sorgente]
+```
