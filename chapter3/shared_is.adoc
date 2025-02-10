@@ -1,0 +1,22 @@
+## Sharing an Image streams from a Common project
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant SharedProject
+    participant MyAppProject
+    participant Registry
+
+    User->>Registry: podman login -u myuser registry.example.com
+    User->>SharedProject: oc project shared
+    User->>SharedProject: oc create secret generic regtoken (Auth Secret)
+    SharedProject->>Registry: Authenticates using regtoken
+    User->>SharedProject: oc import-image myis --reference-policy=local
+    SharedProject->>SharedProject: Creates ImageStream 'myis' referencing Registry Image
+    User->>SharedProject: oc policy add-role-to-group system:image-puller system:serviceaccounts:myapp
+    SharedProject->>MyAppProject: Grants pull access to service accounts in 'myapp'
+    User->>MyAppProject: oc project myapp
+    User->>MyAppProject: oc new-app -i shared/myis
+    MyAppProject->>SharedProject: Pulls image from 'shared/myis'
+    MyAppProject->>User: Application deployed successfully!
+```  
