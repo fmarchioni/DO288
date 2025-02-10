@@ -1,0 +1,75 @@
+# Uso di una ConfigMap nella Build di un Repository Git su OpenShift
+
+## Introduzione  
+Nel processo di build di OpenShift, una **ConfigMap** può essere utilizzata per fornire parametri di configurazione alla build, senza essere inclusa nell'immagine finale. Questo è utile per:  
+
+- Passare variabili d’ambiente personalizzate.  
+- Definire opzioni di build (es. flag, URL, percorsi).  
+- Specificare credenziali o chiavi di accesso (se non sono segrete, altrimenti meglio un **Secret**).  
+
+ 
+
+## 1. Creazione della ConfigMap  
+Per passare un parametro `BUILD_PARAM` alla build, creiamo la ConfigMap con il valore `debug`:  
+
+----
+oc create configmap my-build-config --from-literal=BUILD_PARAM='debug'
+----
+
+## 2. Uso della ConfigMap nella BuildConfig
+
+La ConfigMap viene referenziata come variabile d'ambiente all’interno della BuildConfig:  
+
+[,yaml]  
+----
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: my-app-build
+spec:
+  source:
+    type: Git
+    git:
+      uri: "https://github.com/tuo-org/tuo-app.git"
+  strategy:
+    type: Source
+    sourceStrategy:
+      env:
+      - name: BUILD_PARAM
+        valueFrom:
+          configMapKeyRef:
+            name: my-build-config
+            key: BUILD_PARAM
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "tuo-app:latest"
+----
+
+## Uso della Variabile nella Build (es. in un Dockerfile o script di build)
+
+### Opzione A: Utilizzo in un Dockerfile
+
+Se la build usa un Dockerfile, possiamo accedere alla variabile con un ARG:
+
+----
+FROM ubi8/nodejs:latest
+ARG BUILD_PARAM
+ENV APP_MODE=${BUILD_PARAM}
+RUN echo "Building in mode: ${APP_MODE}"
+----
+  
+In questo caso, APP_MODE sarà debug, poiché la ConfigMap ha impostato BUILD_PARAM=debug.
+
+### Opzione B: Utilizzo in uno script di build
+
+Se il repository Git contiene uno script build.sh che viene eseguito durante la build:
+
+----
+#!/bin/bash
+echo "Build mode: $BUILD_PARAM"
+npm install
+npm run build --mode=$BUILD_PARAM
+----
+  
+Il pod di build leggerà BUILD_PARAM e lo userà per compilare l’applicazione con la modalità appropriata.  
