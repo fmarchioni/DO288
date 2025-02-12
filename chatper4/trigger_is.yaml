@@ -1,0 +1,15 @@
+# Se vuoi che una nuova build S2I venga lanciata automaticamente quando cambia 
+# un'ImageStreamTag (ad es. per la tua immagine base), puoi aggiungere 
+# un trigger alla tua BuildConfig:
+
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: my-build
+spec:
+  triggers:
+    - type: ImageChange
+      imageChange:
+        from:
+          kind: ImageStreamTag
+          name: nodejs:16  # Nome dell'ImageStream base usato nella build
