@@ -1,0 +1,73 @@
+= Kustomize Cheatsheet 
+
+Questo documento raccoglie i comandi principali per utilizzare **Kustomize** con `kubectl` per generare, applicare e verificare le modifiche ai manifest YAML.
+
+---
+
+== 📌 1. Generare e Visualizzare i Manifest con Kustomize
+
+🔹 *Genera il manifest YAML con le personalizzazioni applicate senza applicarle* 
+```sh
+kubectl kustomize <directory>
+```
+🔹 *Esempio:*
+```sh
+kubectl kustomize overlays/dev
+```
+
+---
+
+== 📌 2. Applicare i Manifest Generati 💣
+
+🔹 *Applica i Manifest generati con Kustomize*
+```sh
+kubectl apply -k <directory>
+```
+🔹 *Esempio:*
+```sh
+kubectl apply -k overlays/dev
+```
+
+---
+
+== 📌 3. Verificare le Differenze Prima di Applicare
+
+🔹 *Mostra le differenze tra lo stato attuale e quello generato da Kustomize*
+```sh
+kubectl diff -k <directory>
+```
+🔹 *Esempio:*
+```sh
+kubectl diff -k overlays/dev
+```
+
+---
+
+== 📌 4. Eliminare le Risorse Create con Kustomize ☠
+
+🔹 *Elimina tutte le risorse definite nella cartella Kustomize*
+```sh
+kubectl delete -k <directory>
+```
+🔹 *Esempio:*
+```sh
+kubectl delete -k overlays/dev
+```
+
+---
+
+== 📌 5. Debug e Test
+
+🔹 *Verifica il manifest generato senza applicarlo*
+```sh
+kubectl kustomize <directory> | less
+```
+🔹 *Esempio:*
+```sh
+kubectl kustomize overlays/dev | less
+```
+
+---
+
+
+
