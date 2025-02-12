@@ -1,0 +1,94 @@
+# Kustomize built-in transformations
+
+Permettono di modificare campi noti (namespace, namePrefix, nameSuffix) in modo dichiarativo senza scrivere patch.
+
+## Esempio:
+
+Ecco un esempio su come puoi usare Kustomize in modo dichiarativo per personalizzare una risorsa YAML di OpenShift, variando namespace, namePrefix e nameSuffix.
+📁 Struttura della directory
+
+----
+ my-kustomize/
+│── base/
+│   ├── deployment.yaml  📌
+│   ├── kustomization.yaml
+│── overlays/
+│   ├── dev/
+│   │   ├── kustomization.yaml  📌
+│   ├── prod/
+│   │   ├── kustomization.yaml
+---- 
+
+🟢 Base: Definizione della risorsa originale
+
+📌 File: base/deployment.yaml
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: nginx
+
+---- 
+
+🔵 Customizzazione: Namespace, Prefix, Suffix per **Dev**
+
+📌 File: overlays/dev/kustomization.yaml
+
+[source,yaml]
+----
+namespace: dev-environment
+
+namePrefix: dev-
+nameSuffix: -v1
+
+bases:
+  - ../../base
+
+----  
+
+🔵 Avvio customizzazione:    
+
+[source,bash]
+----
+$  kustomize build overlays/dev | oc apply -f -
+----
+🔵 Risultato dopo kustomize build overlays/dev/
+
+[source,yaml]
+----  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-myapp-v1
+  namespace: dev-environment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: nginx
+  ----
+  
