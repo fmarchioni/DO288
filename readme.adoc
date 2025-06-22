@@ -17,3 +17,5 @@
 * My Openshift Cheatsheet: https://tinyurl.com/re77f5ay
 
 * Deploy JAR file on OpenShift: https://www.youtube.com/watch?v=qds3fqt5Nb0
+
+* Demo Odo: https://github.com/redhat-developer/odo
