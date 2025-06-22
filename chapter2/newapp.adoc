@@ -1,0 +1,89 @@
+= Comando `oc new-app <parametro>`
+
+Quando esegui il comando:
+
+```sh
+oc new-app <parametro>
+```
+
+senza specificare il tipo di **argomento**, OpenShift tenta di interpretare il parametro (ad es. `httpd`) in diversi modi, nell'ordine seguente:
+
+== 1. Template di OpenShift
+- OpenShift cerca un **template** con nome `httpd` tra quelli disponibili nel namespace attuale e nei namespace condivisi.
+- I template sono definiti come risorse `Template` e possono contenere più oggetti Kubernetes/OpenShift.
+- Se trova un template chiamato `httpd`, lo utilizza per generare le risorse.
+
+== 2. Image Stream (ImageStreamTag)
+- Se non trova un template, prova a cercare un **ImageStream** chiamato `httpd` nel progetto corrente o nei progetti condivisi.
+- Se trova un **ImageStreamTag** (es. `httpd:latest`), usa quell'immagine per creare la BuildConfig/Deployment.
+
+== 3. Immagine in un Registry Docker
+- Se non trova né template né ImageStream, prova a cercare **un'immagine nel registro Docker configurato**.
+- Controlla prima nei registri interni di OpenShift e poi su **Docker Hub** o altri registri configurati.
+- Se trova un'immagine chiamata `httpd`, la usa per creare un'applicazione.
+
+== 4. Repository Git (se esiste un repo con quel nome)
+* Se la URL corrisponde a un URL di Repository **valido**, OpenShift prosegue con questa strategia:
+** Se il repository contiene un Jenkinsfile, OpenShift usa la pipeline strategy, avviando una pipeline di build
+** Se il repository contiene un Dockerfile, Openshift usa la Docker build strategy con il Dockerfile
+** Per gli altri casi, in base ai files rilevati nel Web context, avvia il processo di S2I
+ 
+
+== Cosa Succede Se Trova Più Risultati?
+Se ci sono **più corrispondenze** (ad esempio, un ImageStream e un'immagine su Docker Hub), OpenShift potrebbe chiedere di **selezionare una delle opzioni disponibili** o applicare una logica predefinita (priorità ai template e ImageStream locali).
+
+== Come Forzare un Tipo Specifico?
+Se vuoi evitare ambiguità, puoi specificare esplicitamente il tipo di risorsa:
+
+```sh
+oc new-app --template=httpd        # Forza l'uso di un template
+oc new-app --image-stream=httpd    # Usa un ImageStream
+oc new-app --docker-image=httpd    # Usa un'immagine da un registry
+oc new-app --source-repository=httpd   # Usa un repository Git
+```
+
+== Conclusione
+Senza specificare nulla, OpenShift prova prima con i **template**, poi con gli **ImageStream**, poi con le **immagini Docker**, e infine con un **repository Git**, nell'ordine descritto sopra.
+
+
+[source,mermaid]
+....
+flowchart TD
+  A[oc new-app &lt;parameter&gt;]:::start --> B{Is there an OpenShift Template named<br/>&lt;parameter&gt;?}  
+  B -- Yes --> C[Instantiate Template<br/>]:::template
+  B -- No --> D{Is there an ImageStreamTag<br/>&lt;parameter&gt;?}  
+  D -- Yes --> E[Use ImageStreamTag<br/>]:::imagestream
+  D -- No --> F{Is there a Docker image in<br/>configured registries named<br/>&lt;parameter&gt;?}  
+  F -- Yes --> G[Deploy from Docker Image<br/>]:::registry
+  F -- No --> H{Is &lt;parameter&gt; a Git URL?}  
+  H -- Yes --> I[Analyze Git Repo contents]:::git
+  I --> I1{Contains Jenkinsfile?}  
+  I1 -- Yes --> I2[Use Jenkins Pipeline<br/>Build Strategy]:::jenkins
+  I1 -- No --> I3{Contains Dockerfile?}  
+  I3 -- Yes --> I4[Use Docker Build<br/>Strategy]:::dockerfile
+  I3 -- No --> I5[Use S2I Builder Image<br/>]:::s2i
+  H -- No --> Z[Error: Parameter not found]:::error
+
+  %% Multiple matches
+  B & D & F --- M{Multiple matches?}  
+  M -- Yes --> N[Prompt user to choose<br/>or use priority order]:::decision
+
+  classDef start      fill:#f0f8ff,stroke:#036,stroke-width:2px;
+  classDef template   fill:#d1e7dd,stroke:#0f5132,stroke-width:2px;
+  classDef imagestream fill:#cff4fc,stroke:#055160,stroke-width:2px;
+  classDef registry   fill:#e2e3e5,stroke:#41464b,stroke-width:2px;
+  classDef git        fill:#fff3cd,stroke:#664d03,stroke-width:2px;
+  classDef jenkins    fill:#f8d7da,stroke:#842029,stroke-width:2px;
+  classDef dockerfile fill:#cfe2ff,stroke:#084298,stroke-width:2px;
+  classDef s2i        fill:#e7cffd,stroke:#5e35b1,stroke-width:2px;
+  classDef decision   fill:#fde2e4,stroke:#9b1c31,stroke-width:2px,stroke-dasharray: 5 5;
+  classDef error      fill:#f8d7da,stroke:#842029,stroke-width:2px,stroke-dasharray: 5 5;
+....
+
+
+ 
+
+ 
+
+
+
