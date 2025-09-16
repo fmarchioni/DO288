@@ -19,3 +19,5 @@
 * Deploy JAR file on OpenShift: https://www.youtube.com/watch?v=qds3fqt5Nb0
 
 * Demo Odo: https://github.com/redhat-developer/odo
+
+* Migrate from DeploymentConfig to Deploy: https://developers.redhat.com/learning/learn:openshift:replace-deprecated-deploymentconfigs-deployments/resource/resources:convert-deploymentconfig-deployment
