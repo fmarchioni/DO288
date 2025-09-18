@@ -129,7 +129,6 @@ env:
   DATABASE_SVC: todo-list-mariadb
 ```
 
-(Se preferisci il formato lista `- name/ value`, va bene anche quello; qui uso la mappa per semplicità.)
 
 ---
 
@@ -150,7 +149,6 @@ Apri `templates/deployment.yaml` e individua il primo `containers:` -> il blocco
 
 📝 questo ciclo Helm itera su `.Values.env` e crea le env richieste (DATABASE\_USER, DATABASE\_PASSWORD, DATABASE\_NAME, DATABASE\_SVC).
 
-> Nota pratica: fai attenzione all’**indentazione**: deve allinearsi con gli altri field del container (solitamente due livelli sotto `spec.template.spec.containers:`). Puoi modificare manualmente con un editor per evitare problemi di indent.
 
 ---
 
@@ -163,7 +161,7 @@ Tornando alla directory `todo-list` (dove c’è `Chart.yaml`), esegui:
 helm install todo-list . --create-namespace --namespace compreview-todo
 ```
 
-📝 installa il chart nel progetto `compreview-todo`. La dipendenza mariadb verrà installata automaticamente con i valori che hai fornito.
+📝 installa il chart nel progetto `compreview-todo`.  
 
 ---
 
