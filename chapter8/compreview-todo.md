@@ -119,7 +119,7 @@ EOF
 📝 queste chiavi sovrascrivono i valori della chart `mariadb` scaricata come dipendenza.
 
 **3.4 Aggiungere le environment variables che il pod todo-list usa**
-Ti suggerisco di usare una mappa `env` e poi inserirla nella template (più pulito). Aggiungi in `values.yaml`:
+Usa una mappa `env` e poi inserirla nella template (più pulito). Aggiungi in `values.yaml`:
 
 ```yaml
 env:
