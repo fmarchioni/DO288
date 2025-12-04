@@ -96,17 +96,21 @@ sed -i "s|tag: .*|tag: \"release-46\"|g" values.yaml
 **3.2 Cambiare la porta dell’app a 3000**
 (Se il chart ha `service.port` o `containerPort` impostato, modifica quello giusto; esempio generico:)
 
+```yaml
+  port: 3000
+```
+In alternativa, la modifica può essere fatta anche mediante il tool `sed`:
+
 ```bash
 sed -i "s/port: 80/port: 3000/g" values.yaml || true
 ```
 
-Se il chart original usa `containerPort`, modifica `containerPort:` opportunamente (meglio controllare `values.yaml` e adattare).
-
 **3.3 Aggiungere la configurazione richiesta per la dipendenza `mariadb`**
+
 Append al `values.yaml` il blocco MariaDB (esattamente come richiesto dal lab):
 
 ```bash
-cat <<EOF >> values.yaml
+cat <<EOF>> values.yaml
 
 mariadb:
   auth:
@@ -123,22 +127,18 @@ mariadb:
   image:
     repository: redhattraining/mariadb
     tag: 10.5.10-debian-10-r0
+
+env:
+  - name: DATABASE_NAME
+    value: tododb
+  - name: DATABASE_USER
+    value: todouser
+  - name: DATABASE_PASSWORD
+    value: todopwd
+  - name: DATABASE_SVC
+    value: todo-list-mariadb
 EOF
 ```
-
-📝 queste chiavi sovrascrivono i valori della chart `mariadb` scaricata come dipendenza.
-
-**3.4 Aggiungere le environment variables che il pod todo-list usa**
-Usa una mappa `env` e poi inserirla nella template (più pulito). Aggiungi in `values.yaml`:
-
-```yaml
-env:
-  DATABASE_NAME: tododb
-  DATABASE_USER: todouser
-  DATABASE_PASSWORD: todopwd
-  DATABASE_SVC: todo-list-mariadb
-```
-
 
 ---
 
@@ -146,32 +146,60 @@ env:
 
 Per far sì che le env siano applicate al container, modifica il file `templates/deployment.yaml` del chart.
 
-**4.1 Inserire questo snippet dentro la sezione `containers:` (subito prima di `ports:` o dopo `image:`)**
-Apri `templates/deployment.yaml` e individua il primo `containers:` -> il blocco del container dell’app; al suo interno inserisci:
+**4.1 Aggiungi le variabili d'ambiente disponibili nel values.yml**
+
+Il file `templates/deployment.yaml` deve contenere nel Container i riferimenti alle variabili d'ambiente recuperate tramite il `values.yml`. Questa è la configurazione aggiornata:
 
 ```yaml
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
           env:
-          {{- range $name, $value := .Values.env }}
-            - name: {{ $name }}
-              value: {{ $value | quote }}
-          {{- end }}
+            {{- range .Values.env }}
+          - name: {{ .name }}
+            value: {{ .value }}
+            {{- end }}
+          env:
+            {{- range .Values.env }}
+          - name: {{ .name }}
+            value: {{ .value }}
+            {{- end }}
+```
+📝 questo ciclo Helm itera su `.Values.env` e crea le env richieste (DATABASE\_USER, DATABASE\_PASSWORD, DATABASE\_NAME, DATABASE\_SVC).
+
+In alternativa, la modifica può essere fatta anche mediante il tool `sed`:
+
+```bash
+sed -i '43i\          env:\n            {{- range .Values.env }}\n          - name: {{ .name }}\n            value: {{ .value }}\n            {{- end }}' templates/deployment.yaml
 ```
 
-📝 questo ciclo Helm itera su `.Values.env` e crea le env richieste (DATABASE\_USER, DATABASE\_PASSWORD, DATABASE\_NAME, DATABASE\_SVC).
 
 
 ---
 
 ## 5) Installare il chart su OpenShift
 
-**5.1 Eseguire l’installazione Helm**
-Tornando alla directory `todo-list` (dove c’è `Chart.yaml`), esegui:
+**5.1 Login e cambio di progetto**
+
+Eseguire la login come developer e posizionarsi sul progetto **compreview-todo**:
 
 ```bash
-helm install todo-list . --create-namespace --namespace compreview-todo
+oc login -u developer -p developer https://api.ocp4.example.com:6443
+
+oc project compreview-todo
 ```
 
-📝 installa il chart nel progetto `compreview-todo`.  
+📝 installa il chart ed esponi la Route:  
+
+```bash
+oc login -u developer -p developer https://api.ocp4.example.com:6443
+
+oc project compreview-todo
+
+helm install todo-list .
+
+oc expose svc/todo-list
+```
 
 ---
 
