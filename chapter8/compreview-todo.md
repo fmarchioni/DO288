@@ -66,9 +66,20 @@ helm dependency update
 
 ## 3) Configurare `values.yaml` del chart todo-list (image, pullPolicy, porta, mariadb, env)
 
-Apri `values.yaml` e modifica i valori rilevanti. Qui i comandi equivalenti per applicare le modifiche automaticamente (ma puoi editarli anche manualmente).
+**3.1 Modifica campo image**
 
-**3.1 Impostare immagine e pullPolicy**
+Apri `values.yaml` e modifica i valori relativi al campo **image** come segue:
+
+```yaml
+image:
+  repository: registry.ocp4.example.com:8443/redhattraining/todo-backend
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "release-46"
+```
+  
+In alternativa, le modifiche possono essere fatte anche mediante il tool `sed`:
 
 ```bash
 # repository -> registry classroom
@@ -81,7 +92,6 @@ sed -i "s|pullPolicy: IfNotPresent|pullPolicy: Always|g" values.yaml
 sed -i "s|tag: .*|tag: \"release-46\"|g" values.yaml
 ```
 
-📝 il chart userà l’immagine `registry.ocp4.example.com:8443/redhattraining/todo-backend:release-46` e la tirerà sempre (`Always`) come richiesto.
 
 **3.2 Cambiare la porta dell’app a 3000**
 (Se il chart ha `service.port` o `containerPort` impostato, modifica quello giusto; esempio generico:)
