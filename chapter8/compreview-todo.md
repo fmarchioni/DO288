@@ -260,47 +260,38 @@ Apri `Containerfile` e fai due modifiche essenziali:
 * assicurati che l’utente sia `nginx` (o uid appropriato)
 * fai in modo che nginx ascolti sulla porta 8080 (modifica il default.conf)
 
-Esempio modifiche (aggiungi / sostituisci le parti appropriate nel Containerfile):
+Questi sono i due comandi da aggiungere prima di `CMD`:
 
 ```dockerfile
-FROM nginx:1.21-alpine
+# .... comandi precedenti
 
-# copia i contenuti statici
-COPY dist/ /usr/share/nginx/html
-
-# modifica la config di nginx per ascoltare 8080
-RUN sed -i 's/listen       80;/listen       8080;/' /etc/nginx/conf.d/default.conf
-
-# esporre 8080
 EXPOSE 8080
 
-# eseguire come utente nginx
 USER nginx
+
+CMD nginx -g "daemon off;"
 ```
 
-📝 la `sed` sostituisce `listen 80` con `listen 8080` nella config predefinita; `USER nginx` imposta l’utente.
 
 **7.3 Build e push dell’immagine verso il registry di classroom**
-Accertati di avere `podman` o `buildah`/`docker` disponibili. Qui uso `podman` come esempio (in ambienti Red Hat è spesso presente):
+
+- Esegui la login verso il Registry `registry.ocp4.example.com`
+- Fai la Build taggando l'immagine `registry.ocp4.example.com:8443/developer/todo-frontend:latest` 
+- Infine fai il push dell'Immagine.
 
 ```bash
-# login al registry (developer:developer)
-podman login registry.ocp4.example.com:8443 -u developer -p developer
+podman login -u developer -p developer registry.ocp4.example.com:8443
 
-# build
-podman build -t registry.ocp4.example.com:8443/developer/todo-frontend:latest -f Containerfile .
+podman build . -t registry.ocp4.example.com:8443/developer/todo-frontend:latest
 
-# push (aggiungi --tls-verify=false se il registry di lab richiede di disabilitare TLS verification)
-podman push registry.ocp4.example.com:8443/developer/todo-frontend:latest
+podman push registry.ocp4.example.com:8443/developer/todo-frontend
 ```
-
-Nota: se non hai podman, puoi usare `buildah bud -f Containerfile -t ...` e poi `buildah push ...` o `docker build`/`docker push` se disponibile.
 
 **7.4 Deploy del frontend su OpenShift e creare la Route**
 
 ```bash
 # nel progetto compreview-todo
-oc new-app registry.ocp4.example.com:8443/developer/todo-frontend:latest --name=todo-frontend
+oc new-app registry.ocp4.example.com:8443/developer/todo-frontend
 oc expose svc todo-frontend
 ```
 
