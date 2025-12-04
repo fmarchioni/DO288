@@ -34,7 +34,7 @@ cd todo-list
 📝 `helm create` genera la struttura standard (`Chart.yaml`, `values.yaml`, `templates/`).
 
 **2.2 Dichiarare la dipendenza MariaDB**
-Apri `Chart.yaml` e aggiungi (o fai append) la sezione `dependencies:`:
+Apri `Chart.yaml` e **aggiungi** in fondo (o fai append) la sezione `dependencies:`:
 
 ```yaml
 dependencies:
